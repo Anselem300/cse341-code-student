@@ -1,0 +1,355 @@
+openapi: 3.0.0
+info:
+  title: Mini Social Notes API
+  version: 1.0.0
+  description: API documentation for Mini Social Notes
+servers:
+  - url: http://localhost:3000
+
+# 🔑 Global security so you don’t need to repeat in each route
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '201':
+          description: User registered
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User object
+    put:
+      tags: [Users]
+      summary: Update user (self only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                bio:
+                  type: string
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags: [Users]
+      summary: Delete user (self only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted
+
+  /api/notes:
+    post:
+      tags: [Notes]
+      summary: Create a new note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                  example: Finish report
+                content:
+                  type: string
+                  example: Due tomorrow morning
+                category:
+                  type: string
+                  description: Category name (will be resolved to ID internally)
+                  example: Work
+                tags:
+                  type: array
+                  description: List of tag names (will be resolved to IDs internally)
+                  items:
+                    type: string
+                  example: ['Urgent', 'Office']
+      responses:
+        '201':
+          description: Note created
+    get:
+      tags: [Notes]
+      summary: Get all notes (user-owned)
+      responses:
+        '200':
+          description: List of notes
+
+  /api/notes/{id}:
+    get:
+      tags: [Notes]
+      summary: Get a note by ID (owner only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Single note
+    put:
+      tags: [Notes]
+      summary: Update note (owner only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+                  description: Category name (will be resolved to ID internally)
+                  example: Personal
+                tags:
+                  type: array
+                  description: List of tag names (will be resolved to IDs internally)
+                  items:
+                    type: string
+                  example: ['Chores', 'Weekend']
+      responses:
+        '200':
+          description: Updated
+    delete:
+      tags: [Notes]
+      summary: Delete note (owner only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+
+  /api/categories:
+    post:
+      tags: [Categories]
+      summary: Create a new category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Category created
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      responses:
+        '200':
+          description: List of categories
+
+  /api/categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get category by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category object
+    put:
+      tags: [Categories]
+      summary: Update category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Category updated
+    delete:
+      tags: [Categories]
+      summary: Delete category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category deleted
+
+  /api/tags:
+    post:
+      tags: [Tags]
+      summary: Create a new tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Tag created
+    get:
+      tags: [Tags]
+      summary: Get all tags
+      responses:
+        '200':
+          description: List of tags
+
+  /api/tags/{id}:
+    get:
+      tags: [Tags]
+      summary: Get tag by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tag object
+    put:
+      tags: [Tags]
+      summary: Update tag
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Tag updated
+    delete:
+      tags: [Tags]
+      summary: Delete tag
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tag deleted
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
