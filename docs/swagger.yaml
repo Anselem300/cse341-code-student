@@ -1,10 +1,15 @@
 openapi: 3.0.0
 info:
   title: Mini Social Notes API
-  version: 1.0.0
-  description: API documentation for Mini Social Notes
+  version: 1.1.0
+  description: >
+    API documentation for **Mini Social Notes**, featuring:
+    - JWT Authentication
+    - GitHub OAuth login
+    - Notes with Category + Tags (resolved by name)
 servers:
   - url: https://cse341-code-student-f3hw.onrender.com
+  - url: http://localhost:3000
 
 # 🔑 Global security so you don’t need to repeat in each route
 security:
@@ -14,7 +19,7 @@ paths:
   /api/auth/register:
     post:
       tags: [Auth]
-      summary: Register a new user
+      summary: Register a new user (email/password)
       requestBody:
         required: true
         content:
@@ -56,6 +61,26 @@ paths:
       responses:
         '200':
           description: Login successful
+
+  /api/auth/github:
+    get:
+      tags: [Auth]
+      summary: GitHub OAuth login redirect
+      description: Redirects the user to GitHub for authentication.
+      responses:
+        '302':
+          description: Redirects to GitHub OAuth login
+
+  /api/auth/github/callback:
+    get:
+      tags: [Auth]
+      summary: GitHub OAuth callback
+      description: >
+        After GitHub login, users are redirected here.
+        The API exchanges the GitHub code for a user JWT token.
+      responses:
+        '200':
+          description: JWT token and user info returned
 
   /api/users/{id}:
     get:
@@ -127,11 +152,11 @@ paths:
                   example: Due tomorrow morning
                 category:
                   type: string
-                  description: Category name (will be resolved to ID internally)
+                  description: Category name (resolved to ID automatically)
                   example: Work
                 tags:
                   type: array
-                  description: List of tag names (will be resolved to IDs internally)
+                  description: List of tag names (resolved to IDs automatically)
                   items:
                     type: string
                   example: ['Urgent', 'Office']
@@ -143,7 +168,7 @@ paths:
       summary: Get all notes (user-owned)
       responses:
         '200':
-          description: List of notes
+          description: List of notes with populated category and tag names
 
   /api/notes/{id}:
     get:
@@ -157,7 +182,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Single note
+          description: Single note with category and tag names
     put:
       tags: [Notes]
       summary: Update note (owner only)
@@ -179,17 +204,17 @@ paths:
                   type: string
                 category:
                   type: string
-                  description: Category name (will be resolved to ID internally)
+                  description: Category name (resolved to ID automatically)
                   example: Personal
                 tags:
                   type: array
-                  description: List of tag names (will be resolved to IDs internally)
+                  description: Tag names (resolved to IDs automatically)
                   items:
                     type: string
                   example: ['Chores', 'Weekend']
       responses:
         '200':
-          description: Updated
+          description: Updated note
     delete:
       tags: [Notes]
       summary: Delete note (owner only)

@@ -19,7 +19,6 @@ router.post(
   ],
   createNote
 );
-
 router.get('/', auth, getNotes);
 router.get('/:id', auth, getNote);
 router.put('/:id', auth, updateNote);

@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 const {
   createTag,
   getTags,
@@ -6,14 +7,23 @@ const {
   updateTag,
   deleteTag,
 } = require('../controllers/tagsController');
-const router = express.Router();
 const auth = require('../middleware/auth');
+const router = express.Router();
 
-// CRUD routes
-router.post('/', auth, createTag);
+router.post(
+  '/',
+  auth,
+  [body('name').isLength({ min: 1 }).withMessage('name required')],
+  createTag
+);
 router.get('/', auth, getTags);
 router.get('/:id', auth, getTag);
-router.put('/:id', auth, updateTag);
+router.put(
+  '/:id',
+  auth,
+  [body('name').optional().isLength({ min: 1 }).withMessage('name required')],
+  updateTag
+);
 router.delete('/:id', auth, deleteTag);
 
 module.exports = router;

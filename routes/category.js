@@ -1,4 +1,5 @@
 const express = require('express');
+const { body } = require('express-validator');
 const {
   createCategory,
   getCategories,
@@ -6,14 +7,23 @@ const {
   updateCategory,
   deleteCategory,
 } = require('../controllers/categoryController');
-const router = express.Router();
 const auth = require('../middleware/auth');
+const router = express.Router();
 
-// CRUD routes
-router.post('/', auth, createCategory);
+router.post(
+  '/',
+  auth,
+  [body('name').isLength({ min: 1 }).withMessage('name required')],
+  createCategory
+);
 router.get('/', auth, getCategories);
 router.get('/:id', auth, getCategory);
-router.put('/:id', auth, updateCategory);
+router.put(
+  '/:id',
+  auth,
+  [body('name').optional().isLength({ min: 1 }).withMessage('name required')],
+  updateCategory
+);
 router.delete('/:id', auth, deleteCategory);
 
 module.exports = router;

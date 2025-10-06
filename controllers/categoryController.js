@@ -28,7 +28,7 @@ const getCategories = async (req, res) => {
   }
 };
 
-// Get single category
+// Get a category
 const getCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -58,7 +58,7 @@ const updateCategory = async (req, res) => {
   }
 };
 
-// Delete category
+// Delete a category
 const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
