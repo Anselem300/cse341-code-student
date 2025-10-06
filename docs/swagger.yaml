@@ -62,7 +62,7 @@ paths:
         '200':
           description: Login successful
 
-  /api/auth/github:
+  /api/oauth/github:
     get:
       tags: [Auth]
       summary: GitHub OAuth login redirect
@@ -71,7 +71,7 @@ paths:
         '302':
           description: Redirects to GitHub OAuth login
 
-  /api/auth/github/callback:
+  /api/oauth/github/callback:
     get:
       tags: [Auth]
       summary: GitHub OAuth callback
