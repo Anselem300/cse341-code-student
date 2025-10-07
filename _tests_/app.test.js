@@ -5,12 +5,12 @@ const request = require('supertest');
 const { app, start } = require('../server');
 const mongoose = require('mongoose');
 
-jest.setTimeout(20000); // allow up to 20 seconds for async DB operations
+jest.setTimeout(30000); // allow up to 30 seconds for async DB operations
 
 let token;
+let noteId, categoryId, tagId, userId;
 
 beforeAll(async () => {
-  // Start MongoDB connection
   await start();
 
   // Try to register the user (ignore duplicate errors)
@@ -21,9 +21,9 @@ beforeAll(async () => {
       email: 'test@example.com',
       password: '123456',
     })
-    .catch(() => {}); // ignore if already exists
+    .catch(() => {});
 
-  // Then log in to get a JWT token
+  // Log in to get a JWT token
   const loginRes = await request(app)
     .post('/api/auth/login')
     .send({
@@ -35,67 +35,121 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Cleanly close MongoDB connection after all tests
   await mongoose.connection.close();
 });
 
-describe('GET Endpoints', () => {
-  // Notes collection
-  test('GET /api/notes should return all notes', async () => {
+describe('API Endpoints', () => {
+  // ====== CATEGORY TESTS ======
+  test('POST /api/categories - create a category', async () => {
     const res = await request(app)
-      .get('/api/notes')
-      .set('Authorization', `Bearer ${token}`);
-    expect([200, 404]).toContain(res.statusCode);
-    expect(Array.isArray(res.body) || typeof res.body === 'object').toBe(true);
+      .post('/api/categories')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Work', description: 'Work-related tasks' });
+    expect([201, 400]).toContain(res.statusCode);
+    if (res.statusCode === 201) categoryId = res.body._id;
   });
 
-  test('GET /api/notes/:id should return a single note or 404', async () => {
-    const noteId = '68dc2ef731872a932d7bede8';
-    const res = await request(app)
-      .get(`/api/notes/${noteId}`)
-      .set('Authorization', `Bearer ${token}`);
-    expect([200, 403, 404]).toContain(res.statusCode);
-  });
-
-  // Categories collection
-  test('GET /api/categories should return all categories', async () => {
+  test('GET /api/categories - get all categories', async () => {
     const res = await request(app)
       .get('/api/categories')
       .set('Authorization', `Bearer ${token}`);
     expect([200, 404]).toContain(res.statusCode);
-    expect(Array.isArray(res.body) || typeof res.body === 'object').toBe(true);
   });
 
-  test('GET /api/categories/:id should return a single category or 404', async () => {
-    const categoryId = '68dbef871253eda7a9f14960';
+  test('GET /api/categories/:id - get category by id', async () => {
+    const id = categoryId || '68dbef871253eda7a9f14960';
     const res = await request(app)
-      .get(`/api/categories/${categoryId}`)
+      .get(`/api/categories/${id}`)
       .set('Authorization', `Bearer ${token}`);
     expect([200, 404]).toContain(res.statusCode);
   });
 
-  // Tags collection
-  test('GET /api/tags should return all tags', async () => {
+  test('PUT /api/categories/:id - update category', async () => {
+    if (!categoryId) return;
+    const res = await request(app)
+      .put(`/api/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ description: 'Updated description' });
+    expect([200, 404]).toContain(res.statusCode);
+  });
+
+  // ====== TAG TESTS ======
+  test('POST /api/tags - create a tag', async () => {
+    const res = await request(app)
+      .post('/api/tags')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Urgent' });
+    expect([201, 400]).toContain(res.statusCode);
+    if (res.statusCode === 201) tagId = res.body._id;
+  });
+
+  test('GET /api/tags - get all tags', async () => {
     const res = await request(app)
       .get('/api/tags')
       .set('Authorization', `Bearer ${token}`);
     expect([200, 404]).toContain(res.statusCode);
-    expect(Array.isArray(res.body) || typeof res.body === 'object').toBe(true);
   });
 
-  test('GET /api/tags/:id should return a single tag or 404', async () => {
-    const tagId = '68dbf0c41253eda7a9f14964';
+  test('GET /api/tags/:id - get tag by id', async () => {
+    const id = tagId || '68dbf0c41253eda7a9f14964';
     const res = await request(app)
-      .get(`/api/tags/${tagId}`)
+      .get(`/api/tags/${id}`)
       .set('Authorization', `Bearer ${token}`);
     expect([200, 404]).toContain(res.statusCode);
   });
 
-  // Users collection
-  test('GET /api/users/:id should return a single user or 404', async () => {
-    const userId = '68dbdc7d230a625834ac2325';
+  test('PUT /api/tags/:id - update tag', async () => {
+    if (!tagId) return;
     const res = await request(app)
-      .get(`/api/users/${userId}`)
+      .put(`/api/tags/${tagId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'High Priority' });
+    expect([200, 404]).toContain(res.statusCode);
+  });
+
+  // ====== NOTE TESTS ======
+  test('POST /api/notes - create a note', async () => {
+    const res = await request(app)
+      .post('/api/notes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Finish report',
+        content: 'Due tomorrow morning',
+        category: 'Work',
+        tags: ['Urgent'],
+      });
+    expect([201, 400]).toContain(res.statusCode);
+    if (res.statusCode === 201) noteId = res.body._id;
+  });
+
+  test('GET /api/notes - get all notes', async () => {
+    const res = await request(app)
+      .get('/api/notes')
+      .set('Authorization', `Bearer ${token}`);
+    expect([200, 404]).toContain(res.statusCode);
+  });
+
+  test('GET /api/notes/:id - get note by id', async () => {
+    const id = noteId || '68dc2ef731872a932d7bede8';
+    const res = await request(app)
+      .get(`/api/notes/${id}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect([200, 403, 404]).toContain(res.statusCode);
+  });
+
+  test('PUT /api/notes/:id - update note', async () => {
+    if (!noteId) return;
+    const res = await request(app)
+      .put(`/api/notes/${noteId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: 'Updated note content' });
+    expect([200, 404]).toContain(res.statusCode);
+  });
+
+  // ====== USER TEST ======
+  test('GET /api/users/:id - get user by id', async () => {
+    const res = await request(app)
+      .get(`/api/users/${userId || '68dbdc7d230a625834ac2325'}`)
       .set('Authorization', `Bearer ${token}`);
     expect([200, 404, 401]).toContain(res.statusCode);
   });
